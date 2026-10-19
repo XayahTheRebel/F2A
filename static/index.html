@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="在本机将 PNG 序列帧转换为动态 WebP。支持透明背景、无损压缩、帧率调整与动画预览。">
+  <meta name="theme-color" content="#f5f3ed">
+  <title>逐帧 Frameflow · PNG 转动态 WebP</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <header class="header">
+    <a class="brand" href="/" aria-label="逐帧首页"><img src="/favicon.svg" width="37" height="37" alt=""><span>逐帧<span class="brand-en">FRAMEFLOW</span></span></a>
+    <div class="local-badge"><span class="status-dot"></span>本机处理<span class="badge-divider">/</span>无需上传云端</div>
+    <button class="button button-outline" id="import-top"><span aria-hidden="true">＋</span> 导入 PNG</button>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div><div class="eyebrow"><span class="tiny-line"></span>PNG SEQUENCE → ANIMATED WEBP</div><h1 id="page-title">让每一帧，<span>连成动作。</span></h1><p>从一组 PNG，到一段轻巧、清晰的透明动画。</p></div>
+      <div class="intro-note"><span class="note-number">01 — 03</span><span>导入序列 <i>→</i> 调整动画 <i>→</i> 导出 WebP</span></div>
+    </section>
+
+    <div class="workspace">
+      <section class="editor" aria-label="动画编辑器">
+        <div class="panel-bar"><div class="tabs" role="group" aria-label="预览内容"><button id="source-tab" class="tab active" aria-pressed="true">序列预览</button><button id="result-tab" class="tab" aria-pressed="false" disabled>导出结果<span id="result-dot" hidden></span></button></div><div class="background-options" role="group" aria-label="预览背景"><button class="swatch checker active" data-bg="checker" aria-label="透明网格背景" aria-pressed="true"></button><button class="swatch light" data-bg="light" aria-label="浅色背景" aria-pressed="false"></button><button class="swatch dark" data-bg="dark" aria-label="深色背景" aria-pressed="false"></button></div></div>
+        <div id="drop-zone" class="stage checker-stage">
+          <span class="corner corner-tl" aria-hidden="true"></span><span class="corner corner-tr" aria-hidden="true"></span><span class="corner corner-bl" aria-hidden="true"></span><span class="corner corner-br" aria-hidden="true"></span>
+          <div id="empty-state" class="empty-state">
+            <button class="drop-trigger" id="import-stage" aria-label="选择 PNG 序列帧"><span class="frame-art" aria-hidden="true"><span class="art-sheet art-back"></span><span class="art-sheet art-mid"></span><span class="art-sheet art-front"><svg viewBox="0 0 60 60"><path d="M30 15v30M15 30h30"/></svg></span><span class="art-spark">✦</span></span><strong>把动作带进来</strong><span>拖入 PNG 序列帧，或<span class="text-link">点击选择文件</span></span></button>
+            <span class="empty-hint">保留透明背景 · 自动按文件名数字排序</span>
+            <button id="demo-button" class="demo-button">没有素材？试试示例动画 <span aria-hidden="true">↗</span></button>
+          </div>
+          <img id="preview" alt="动画预览" draggable="false" hidden>
+          <div id="stage-meta" class="stage-meta" hidden><span id="preview-dimensions"></span><span id="preview-label">PNG 序列</span></div>
+          <div class="drop-overlay" id="drop-overlay" hidden><span>松开以添加 PNG 序列帧</span></div>
+        </div>
+        <div class="transport"><button class="play-button" id="play" aria-label="播放动画" disabled><svg id="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 11 7-11 7z"/></svg><svg id="pause-icon" viewBox="0 0 24 24" aria-hidden="true" hidden><path d="M7 5h4v14H7zM15 5h4v14h-4z"/></svg></button><span id="frame-position" class="mono frame-position">000 / 000</span><input id="scrubber" type="range" min="0" max="0" value="0" aria-label="选择预览帧" disabled><span id="duration-label" class="mono">0.00 s</span><button id="previous-frame" class="icon-button" aria-label="上一帧" disabled>‹</button><button id="next-frame" class="icon-button" aria-label="下一帧" disabled>›</button></div>
+        <div class="timeline">
+          <div class="timeline-heading"><h2>序列帧 <span id="frame-count">0</span></h2><div class="timeline-actions"><button id="sort" disabled>自然排序</button><button id="reverse" disabled>反转</button><button id="clear" disabled>清空</button></div></div>
+          <div id="frame-list" class="frame-list" role="list" aria-label="PNG 帧列表"><div class="timeline-empty"><span class="empty-dash"></span>你的序列将在这里展开<span class="empty-dash"></span></div></div>
+          <div class="timeline-footer"><span id="selected-name">支持一次导入多张 PNG</span><div class="frame-edit-actions"><button id="move-left" class="icon-button" aria-label="将选中帧前移" disabled>←</button><button id="move-right" class="icon-button" aria-label="将选中帧后移" disabled>→</button><button id="remove" class="icon-button remove-button" aria-label="移除选中帧" disabled>×</button></div></div>
+        </div>
+      </section>
+
+      <aside class="settings" aria-labelledby="settings-title">
+        <div class="settings-heading"><div><span class="eyebrow">MAKE IT MOVE</span><h2 id="settings-title">输出设置</h2></div><span class="settings-symbol" aria-hidden="true">↗</span></div>
+        <fieldset id="settings-fields">
+          <div class="field-group"><div class="field-label"><label for="fps">播放帧率</label><span class="unit">FPS</span></div><div class="fps-controls"><div class="presets" role="group" aria-label="常用帧率"><button type="button" data-fps="12" aria-pressed="false">12</button><button type="button" data-fps="24" class="selected" aria-pressed="true">24</button><button type="button" data-fps="30" aria-pressed="false">30</button></div><input type="number" id="fps" min="1" max="60" step="1" value="24" aria-label="自定义帧率"></div><p class="field-hint">帧率越高，动作越流畅，播放时间越短。</p></div>
+          <div class="field-group"><div class="field-label"><span id="compression-label">压缩方式</span></div><div class="segmented" role="group" aria-labelledby="compression-label"><button id="lossy" class="selected" aria-pressed="true">有损 · 更轻巧</button><button id="lossless" aria-pressed="false">无损 · 更清晰</button></div><div class="quality-field"><div class="field-label"><label for="quality">画质</label><output for="quality" id="quality-value" class="mono">85<span>%</span></output></div><input type="range" id="quality" min="1" max="100" value="85"><p id="quality-hint" class="field-hint">推荐 80–90，兼顾画质与文件体积。</p></div></div>
+          <div class="two-fields"><div class="field-group"><label for="scale">输出尺寸</label><select id="scale"><option value="100">原始尺寸 · 100%</option><option value="75">缩小至 75%</option><option value="50">缩小至 50%</option><option value="25">缩小至 25%</option></select></div><div class="field-group"><label for="loop">循环方式</label><select id="loop"><option value="0">无限循环</option><option value="1">播放一次</option><option value="3">播放三次</option></select></div></div>
+          <div class="field-group filename-group"><label for="filename">文件名称</label><div class="filename-input"><input id="filename" type="text" value="animation" maxlength="100" spellcheck="false" aria-label="导出文件名"><span>.webp</span></div></div>
+        </fieldset>
+        <div class="output-summary"><div><span>输出画布</span><strong id="output-dimensions" class="mono">— × —</strong></div><div><span>帧数 / 时长</span><strong id="output-duration" class="mono">— / —</strong></div><div><span>PNG 原始体积</span><strong id="input-size" class="mono">—</strong></div></div>
+        <button id="export" class="button export-button" disabled><span id="export-label">生成动态 WebP</span><span id="export-arrow" aria-hidden="true">↗</span><span id="export-spinner" class="spinner" hidden></span></button>
+        <p class="export-note" id="export-note">透明背景会自动保留</p>
+        <div id="result-card" class="result-card" hidden><div class="result-heading"><span class="status-dot"></span><strong>转换完成</strong><span id="saved-size"></span></div><div class="result-details"><span id="result-size" class="mono"></span><span id="result-dimensions"></span></div><a id="download" class="download-button" download="animation.webp">下载 WebP <span aria-hidden="true">↓</span></a></div>
+      </aside>
+    </div>
+    <div class="bottom-note"><span><span class="mini-square"></span>每一帧，恰到好处。</span><span>PNG → WEBP<span class="bottom-dot">·</span>本地转换工具</span></div>
+    <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+    <input id="file-input" type="file" accept="image/png,.png" multiple hidden>
+  </main>
+  <footer>FRAMEFLOW<span>为网页里的小小动作而造。</span><span class="footer-version">V 1.0</span><button id="quit" class="quit-button">退出应用</button></footer>
+</div>
+</body>
+</html>
